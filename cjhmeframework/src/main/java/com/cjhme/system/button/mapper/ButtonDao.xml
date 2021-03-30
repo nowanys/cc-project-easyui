@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.button.dao.ButtonDao" >
+
+ <!-- 根据条件分页查询按钮-->
+ <select id="queryButtonByConditionPaging" parameterType="hashmap" resultType="buttonBean">
+       select 
+          buttonId as buttonId,
+          buttonName as buttonName,
+          buttonType as buttonType,
+          iconCls as iconCls,
+          functionName as functionName,
+          menuId as menuId,
+          (select menuName from t_menu tt where tt.menuId=t.menuId) as menuName,
+          busniessMark as busniessMark,
+          layoutMark as layoutMark,
+          buttonDescribe as buttonDescribe,
+          status as status,
+          sortNum as sortNum,
+          createUser as createUser,
+          updateUser as updateUser,
+          createDate as createDate,
+          updateDate as updateDate
+       from t_button t
+       where  
+       <choose>
+	      <when test="status!=null and status!='' and status=='-1'">
+	       t.status!='3'
+	     </when>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       t.status=#{status}
+	     </when>
+	     <otherwise>
+	       t.status='1'
+	     </otherwise>
+	  </choose>
+       <if test="buttonName!=null and buttonName!=''">
+         and 
+           buttonName like '%${buttonName}%'
+       </if>
+       <if test="busniessMark!=null and busniessMark!='' and busniessMark!='-1'">
+         and 
+           busniessMark =#{busniessMark}
+       </if>
+       <if test="menuId!=null and menuId!='' and menuId!='-1'">
+         and 
+           menuId =#{menuId}
+       </if>
+       order by busniessMark,sortNum
+ </select>
+
+ <!-- 判断按钮是否存在 -->
+ <select id="queryButtonIsExists" parameterType="hashmap" resultType="integer">
+   select 
+      count(1)
+   from t_button
+   where
+      layoutMark=#{layoutMark}
+   and
+      busniessMark=#{busniessMark}
+   and
+      functionName=#{functionName}
+   and 
+      menuId=#{menuId}
+   <if test="buttonId!=null and buttonId!=''">
+      and  buttonId !=#{buttonId}
+   </if> 
+   and status!='3'
+ </select>
+ 
+ <!-- 添加按钮 -->
+ <insert id="saveButton" parameterType="hashmap">
+   insert into t_button(
+      buttonName,
+      buttonType,
+      iconCls,
+      functionName,
+      menuId,
+      busniessMark,
+      layoutMark,
+      buttonDescribe,
+      sortNum,
+      status,
+      createUserId,
+      createUser,
+      createDate
+   )values(
+      #{buttonName},
+      #{buttonType},
+      #{iconCls},
+      #{functionName},
+      #{menuId},
+      #{busniessMark},
+      #{layoutMark},
+      #{buttonDescribe},
+      #{sortNum},
+      #{status},
+      #{createUserId},
+      #{createUser},
+      sysdate()
+   )
+ </insert>
+ 
+ <!-- 根据id查询按钮 -->
+ <select id="queryButtonById" parameterType="hashmap" resultType="buttonBean">
+  select 
+          buttonId as buttonId,
+          buttonName as buttonName,
+          buttonType as buttonType,
+          iconCls as iconCls,
+          functionName as functionName,
+          menuId as menuId,
+          (select menuName from t_menu tt where tt.menuId=t.menuId) as menuName,
+          busniessMark as busniessMark,
+          layoutMark as layoutMark,
+          buttonDescribe as buttonDescribe,
+          sortNum as sortNum,
+          status as status,
+          createUserId as createUserId,
+	      createUser as createUser,
+	      updateUserId as updateUserId,
+	      updateUser as updateUser,
+	      createDate as createDate,
+	      updateDate as updateDate
+   from t_button t 
+   where 
+      buttonId=#{buttonId}
+ </select>
+ 
+ <!-- 根据id修改按钮 -->
+ <update id="updateButtonById" parameterType="hashmap">
+   update t_button
+   set
+     buttonName=#{buttonName},
+     buttonType=#{buttonType},
+     iconCls=#{iconCls},
+     functionName=#{functionName},
+     menuId=#{menuId},
+     busniessMark=#{busniessMark},
+     layoutMark=#{layoutMark},
+     buttonDescribe=#{buttonDescribe},
+     sortNum=#{sortNum},
+     status=#{status},
+     updateUserId=#{updateUserId},
+     updateUser=#{updateUser},
+     updateDate=sysdate()
+   where
+    buttonId=#{buttonId} 
+ </update>
+ 
+ <!-- 根据ids删除按钮 -->
+ <update id="deleteButtonByIds" parameterType="hashmap">
+   update t_button
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       buttonId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+ 
+ <!-- 查询所有按钮列表 -->
+ <select id="queryAllButtonList" resultType="buttonBean">
+    select 
+          t.buttonId as buttonId,
+          t.buttonName as buttonName,
+          t.buttonType as buttonType,
+          (select menuName from t_menu tt where tt.menuId=t.menuId) as menuName,
+          t.menuId as menuId,
+          t.busniessMark as busniessMark,
+          t.layoutMark as layoutMark
+    from t_button t
+    where
+     t.status='1'
+     order by sortNum
+ </select>
+ 
+ <!-- 根据业务标识与角色id查询按钮 -->
+ <select id="queryBtnByBusniessMarkAndRole" parameterType="hashmap" resultType="buttonBean">
+   select 
+          t.buttonId as buttonId,
+          t.buttonName as buttonName,
+          t.buttonType as buttonType,
+          t.iconCls as iconCls,
+          t.functionName as functionName,
+          t.layoutMark as layoutMark
+   from t_button t,t_role_button_mapping trb
+   where 
+      t.buttonId=trb.buttonId
+   and 
+      t.busniessMark=#{busniessMark}
+   and
+      trb.roleId =#{roleId}
+   and 
+      t.status='1'   
+   group by t.buttonId 
+   order by sortNum
+ </select>
+ 
+ <!-- 根据按钮ids删除按钮角色映射 -->
+ <delete id="deleteButtonRoleMappingByIds" parameterType="hashmap">
+   delete from 
+      t_role_button_mapping 
+   where 
+       buttonId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+ 
+
+</mapper>

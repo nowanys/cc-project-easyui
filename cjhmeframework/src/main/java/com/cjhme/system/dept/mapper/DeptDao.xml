@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.dept.dao.DeptDao">
+ 
+ <!-- 查询所有部门结构 -->
+ <select id="queryDeptList"  resultType="treeNodeBean">
+     select 
+         deptId as id,
+         deptName as text,
+         parentDeptId as parentId,
+         iconCls as iconCls,
+         deptCode as attr1,
+         deptSortName as attr2
+      from t_dept t 
+      where 
+         t.status='1'
+ </select>
+ 
+ <!-- 根据条件分页查询部门 -->
+ <select id="queryDeptByConditionPaging" parameterType="hashmap" resultType="deptBean">
+     select 
+       deptId as deptId,
+       deptCode as deptCode,
+       deptName as deptName,
+       deptSortName as deptSortName,
+       deptLevel as deptLevel,
+       parentDeptId as parentDeptId,
+       iconCls as iconCls,
+       createUser as createUser,
+       updateUser as updateUser,
+       createDate as createDate,
+       updateDate as updateDate
+     from 
+       t_dept t
+     where 
+       status='1'
+     <choose>
+         <!--按指定组织查询  -->
+	     <when test="queryStatus!=null and queryStatus!='' and (queryStatus=='1' or queryStatus==1)">
+	       and 
+	         deptName like '%${deptName}%' 
+	       and 
+	         parentDeptId=#{deptId}
+	     </when>
+	     <!--按所有组织查询-->
+	     <when test="queryStatus!=null and queryStatus!='' and (queryStatus=='2' or queryStatus==2)">
+	       and 
+	         deptName like '%${deptName}%'
+	     </when>
+	 </choose>
+ </select>
+ 
+<!-- 判断部门是否存在 -->
+<select id="queryDeptIsExists" parameterType="hashmap" resultType="integer">
+   select         
+      count(1) 
+   from t_dept  
+   where 
+      (deptName=#{deptName} or deptCode=#{deptCode} 
+   <if test="deptSortName!=null and deptSortName!=''">
+       or deptSortName=#{deptSortName}
+   </if> 
+      ) 
+   <if test="deptId!=null and deptId!=''">
+      and  deptId !=#{deptId} 
+   </if> 
+   and status!='3'
+</select>
+ 
+ <!--添加部门-->
+ <insert id="saveDept" parameterType="hashmap">
+      insert into t_dept(
+         deptCode,
+         deptName,
+         deptSortName,
+         deptLevel,
+         deptDescript,
+         parentDeptId,
+         deptLeaderId,
+         deptTel,
+         deptAddr,
+         iconCls,
+         status,
+         createUserId,
+         createUser,
+         createDate,
+         emailSwitch,
+         smsSwitch
+      )values(
+         #{deptCode},
+         #{deptName},
+         #{deptSortName},
+         #{deptLevel},
+         #{deptDescript},
+         #{parentDeptId},
+         #{deptLeaderId},
+         #{deptTel},
+         #{deptAddr},
+         #{iconCls},
+         '1',
+         #{createUserId},
+         #{createUser},
+         sysdate(),
+         #{emailSwitch},
+         #{smsSwitch}
+      )
+ </insert>
+ 
+ <!-- 根据id查询部门 -->
+ <select id="queryDeptByDeptId" parameterType="hashmap"  resultType="deptBean">
+   select 
+       deptId as deptId,
+       deptCode as deptCode,
+       deptName as deptName,
+       deptSortName as deptSortName,
+       deptLevel as deptLevel,
+       deptDescript as deptDescript,
+       parentDeptId as parentDeptId,
+       deptTel as deptTel,
+       deptAddr as deptAddr,
+       iconCls as iconCls,
+       createUser as createUser,
+       updateUser as updateUser,
+       createDate as createDate,
+       updateDate as updateDate,
+       deptLeaderId as deptLeaderId,
+       (select userName from t_user tt where tt.userId=t.deptLeaderId) as deptLeader,
+       emailSwitch as emailSwitch,
+       smsSwitch as smsSwitch,
+       createUserId as createUserId,
+       createUser as createUser,
+       updateUserId as updateUserId,
+       updateUser as updateUser,
+       createDate as createDate,
+       updateDate as updateDate
+     from 
+       t_dept t
+     where 
+       deptId=#{deptId}
+ </select>
+ 
+ <!-- 根据id修改部门 -->
+ <update id="updateDeptByDeptId" parameterType="hashmap">
+    update 
+       t_dept
+    set 
+      deptCode=#{deptCode},
+      deptName=#{deptName},
+      deptSortName=#{deptSortName},
+      deptLevel=#{deptLevel},
+      deptDescript=#{deptDescript},
+      deptTel=#{deptTel},
+      deptAddr=#{deptAddr},
+      iconCls=#{iconCls},
+      deptLeaderId=#{deptLeaderId},
+      updateUserId=#{updateUserId},
+      updateUser=#{updateUser},
+      updateDate=sysdate(),
+      <if test="emailSwitch!=null and emailSwitch!=''">
+	     emailSwitch=#{emailSwitch},
+	  </if> 
+	  <if test="smsSwitch!=null and smsSwitch!=''">
+	     smsSwitch=#{smsSwitch}
+	  </if>
+    where
+      deptId=#{deptId}
+ </update>
+ 
+ <!-- 根据ids删除部门 -->
+ <update id="deleteDeptByIds" parameterType="hashmap">
+   update t_dept
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       deptId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+ 
+ <!-- 根据条件查询部门 -->
+ <select id="queryDeptByCondition" parameterType="hashmap" resultType="TreeNodeBean">
+     select 
+         deptId as id,
+         deptName as text,
+         parentDeptId as parentId,
+         iconCls as iconCls,
+         deptCode as attr1,
+         deptSortName as attr2
+     from 
+       t_dept t
+     where 
+       status='1'
+     <if test="deptCode!=null and deptCode!=''">
+       and deptCode like '%${deptCode}%' 
+     </if> 
+     <if test="deptName!=null and deptName!=''">
+       and deptName like '%${deptName}%' 
+     </if> 
+     <if test="deptSortName!=null and deptSortName!=''">
+       and deptSortName like '%${deptSortName}%' 
+     </if> 
+ </select>
+ 
+ <!-- 根据id移动部门 -->
+ <update id="updateDeptParentDeptIdById" parameterType="hashmap">
+   update t_dept
+     set
+       parentDeptId=#{parentDeptId},
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       deptId=#{deptId}
+ </update>
+ 
+ <!-- 根据组织ids删除部门用户映射 -->
+ <delete id="deleteDeptUserMappingByIds" parameterType="hashmap">
+   delete from 
+       t_user_dept_mapping 
+   where 
+       deptId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+   
+</mapper>

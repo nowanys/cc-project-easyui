@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.menu.dao.MenuDao">
+
+ <resultMap type="treeNodeBean" id="treeMenuRM">
+    <id  property="id" column="id"/>
+    <result  property="text" column="text"/>
+    <result  property="iconCls" column="iconCls"/>
+    <result  property="attr1" column="attr1"/>
+    <result  property="parentId" column="parentId"/>
+    <result  property="attr0" column="attr0"/>
+    <collection property="children" ofType="java.util.ArrayList" column="{parentMenuId=id,roleId=attr0}" select="queryUserAccordionTreeMenuById"/>
+ </resultMap>
+
+ <!-- 初始化用户菜单 -->
+ <select id="queryUserMenuByRoleId" parameterType="hashmap" resultType="treeNodeBean">
+       select 
+          m.menuId as id,
+          m.menuName as text,
+          m.iconCls as iconCls, 
+          m.accessUrl as attr1,
+          m.parentMenuId as parentId
+        from t_menu m,t_role_menu_mapping rm
+         where 
+            m.status='1' and m.menuId=rm.menuId and rm.roleId = #{roleId}
+         group by m.menuId
+         order by m.parentMenuId,m.sortNum
+ </select>
+ 
+ <!-- 初始化用户手网琴菜单 -->
+ <select id="queryUserAccordionMenuByRoleId" parameterType="hashmap" resultType="menuBean">
+       select 
+          m.menuId as menuId,
+          m.menuName as menuName,
+          m.iconCls as iconCls, 
+          m.accessUrl as accessUrl,
+          m.parentMenuId as parentMenuId
+        from t_menu m,t_role_menu_mapping rm
+         where 
+            m.status='1' 
+          and
+            m.menuId=rm.menuId 
+          and 
+            m.parentMenuId=#{parentMenuId}
+          and 
+            rm.roleId = #{roleId}
+         group by m.menuId
+         order by m.parentMenuId,m.sortNum
+ </select>
+ 
+ <!-- 初始化用户手网琴菜单树-->
+ <select id="queryUserAccordionTreeMenuById" parameterType="hashmap" resultMap="treeMenuRM">
+       select 
+          m.menuId as id,
+          m.menuName as text,
+          m.iconCls as iconCls, 
+          m.accessUrl as attr1,
+          m.parentMenuId as parentId,
+          rm.roleId as attr0
+        from t_menu m,t_role_menu_mapping rm
+         where 
+            m.status='1' 
+         and 
+            m.menuId=rm.menuId 
+         and 
+            m.parentMenuId=#{parentMenuId}
+         and 
+            rm.roleId = #{roleId}
+         group by m.menuId
+         order by m.parentMenuId,m.sortNum
+  </select>
+ 
+   
+ <!-- 查询菜单列表 -->
+ <select id="queryMenuList"  resultType="treeNodeBean">
+       select 
+          menuId as id,
+          menuCode as attr1,
+          menuName as text,
+          iconCls as iconCls,
+          parentMenuId as parentId
+        from t_menu 
+        where 
+          status='1'
+        order by parentMenuId,sortNum
+ </select>
+   
+ <!-- 根据条件分页查询菜单-->
+ <select id="queryMenuByConditionPaging" parameterType="hashmap" resultType="menuBean">
+       select 
+          menuId as menuId,
+          menuCode as menuCode,
+          menuName as menuName,
+          parentMenuId as parentMenuId,
+          iconCls as iconCls,
+          accessUrl as accessUrl,
+          sortNum as sortNum,
+          createUser as createUser,
+          updateUser as updateUser,
+          createDate as createDate,
+          updateDate as updateDate
+       from t_menu 
+       where 
+       status='1'
+       <choose>
+         <!--按指定菜单查询  -->
+	     <when test="queryStatus!=null and queryStatus!='' and (queryStatus=='1' or queryStatus==1)">
+	       and 
+	         menuName like '%${menuName}%' 
+	       and 
+	         parentMenuId=#{menuId}
+	     </when>
+	     <!--按所有菜单查询-->
+	     <when test="queryStatus!=null and queryStatus!='' and (queryStatus=='2' or queryStatus==2)">
+	       and 
+	         menuName like '%${menuName}%'  
+	     </when>
+	  </choose>
+       order by parentMenuId,sortNum
+ </select>
+
+ <!-- 判断菜单是否存在 -->
+ <select id="queryMenuIsExists" parameterType="hashmap" resultType="integer">
+   select         
+      count(1) 
+   from t_menu  
+   where 
+      (menuName=#{menuName} or menuCode=#{menuCode}) 
+   and 
+      parentMenuId=#{parentMenuId}
+   <if test="menuId!=null and menuId!=''">
+      and  menuId !=#{menuId} 
+   </if> 
+   and status!='3'
+ </select>
+ 
+ <!-- 根据父菜单id查询最大序号 -->
+ <select id="queryMenuMaxSortNumByPMId" parameterType="hashmap" resultType="integer">
+   select 
+    ifnull(max(sortNum),0)
+   from t_menu
+   where
+    parentMenuId=#{parentMenuId}
+ </select>
+ 
+ <!--添加菜单-->
+ <insert id="saveMenu" parameterType="hashmap">
+      insert into t_Menu(
+         menuCode,
+         menuName,
+         accessUrl,
+         parentMenuId,
+         sortNum,
+         iconCls,
+         status,
+         createUserId,
+         createUser,
+         createDate
+      )values(
+         #{menuCode},
+         #{menuName},
+         #{accessUrl},
+         #{parentMenuId},
+         #{sortNum},
+         #{iconCls},
+         '1',
+         #{createUserId},
+         #{createUser},
+         sysdate()
+      )
+ </insert>
+ 
+ <!-- 根据id查询菜单 -->
+ <select id="queryMenuByMenuId" parameterType="hashmap"  resultType="menuBean">
+   select 
+       menuId as menuId,
+       menuCode as menuCode,
+       menuName as menuName,
+       iconCls as iconCls,
+       accessUrl as accessUrl,
+       parentMenuId as parentMenuId,
+       createUserId as createUserId,
+       createUser as createUser,
+       updateUserId as updateUserId,
+       updateUser as updateUser,
+       createDate as createDate,
+       updateDate as updateDate
+     from 
+       t_menu t
+     where 
+       menuId=#{menuId}
+ </select>
+ 
+ <!-- 根据id修改菜单 -->
+ <update id="updateMenuByMenuId" parameterType="hashmap">
+    update 
+       t_menu
+    set 
+      menuCode=#{menuCode},
+      menuName=#{menuName},
+      iconCls=#{iconCls},
+      accessUrl=#{accessUrl},
+      updateUserId=#{updateUserId},
+      updateUser=#{updateUser},
+      updateDate=sysdate()
+    where
+      menuId=#{menuId}
+ </update>
+ 
+ <!-- 根据ids删除菜单 -->
+ <update id="deleteMenuByIds" parameterType="hashmap">
+   update t_menu
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       menuId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+ 
+ <!-- 根据条件查询菜单 -->
+ <select id="queryMenuByCondition" parameterType="hashmap" resultType="treeNodeBean">
+     select 
+          menuId as id,
+          menuName as text,
+          parentMenuId as parentId,
+          iconCls as iconCls,
+           menuCode as attr1,
+          accessUrl as attr2
+     from 
+       t_menu t
+     where 
+       status='1'
+     <if test="menuCode!=null and menuCode!=''">
+       and menuCode like '%${menuCode}%' 
+     </if> 
+     <if test="menuName!=null and menuName!=''">
+       and menuName like '%${menuName}%' 
+     </if> 
+      order by parentMenuId,sortNum
+     
+ </select>
+ 
+ <!-- 根据移动菜单id查询菜单最大排序 -->
+ <select id="queryMaxSortNumByParentMenuId" parameterType="hashmap" resultType="string">
+    select 
+      (max(sortNum)+1)
+    from t_menu t
+    where 
+      t.parentMenuId=#{parentMenuId}
+ </select>
+ 
+ <!-- 根据id移动菜单 -->
+ <update id="updateMenuParentMenuIdById" parameterType="hashmap">
+   update t_menu
+     set
+       parentMenuId=#{parentMenuId},
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate(),
+       sortNum=#{sortNum}
+   where 
+       menuId=#{menuId}
+ </update>
+ 
+ 
+ <!-- 获得当前行的上一条菜单 -->
+ <select id="queryPreviousMenuById" parameterType="hashmap" resultType="menuBean">
+    select 
+      menuId as menuId,
+      sortNum as sortNum
+    from t_menu t
+    where
+     t.sortNum &lt; #{sortNum}
+     and t.parentMenuId=#{parentMenuId}
+	 and t.status!='3'
+	 order by sortNum desc
+     limit 0,1;
+ </select>
+
+ <!-- 获得当前行的下一条菜单 -->
+ <select id="queryNextMenuById" parameterType="hashmap" resultType="menuBean">
+    select 
+      menuId as menuId,
+      sortNum as sortNum
+    from t_menu t
+    where
+      t.sortNum &gt; #{sortNum}
+      and t.parentMenuId=#{parentMenuId}
+      and t.status!='3'
+	  order by sortNum
+      limit 0,1;
+ </select>
+
+ <!-- 根据id移动菜单序号 -->
+ <update id="updateMenuSortNumById" parameterType="hashmap">
+    update t_menu 
+    set
+       sortNum=#{sortNum},
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+    where 
+       menuId =#{menuId}
+ </update>
+ 
+ <!-- 根据菜单ids删除菜单角色映射 -->
+ <delete id="deleteMenuRoleMappingByIds" parameterType="hashmap">
+   delete from 
+       t_role_menu_mapping 
+   where 
+       menuId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+ 
+ 
+</mapper>

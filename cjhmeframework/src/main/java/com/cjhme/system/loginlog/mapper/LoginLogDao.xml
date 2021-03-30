@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.loginlog.dao.LoginLogDao">
+
+  
+  <!-- 获得当前用户登录信息日志 -->
+  <select id="queryCurrentUserLoginLogInfo" parameterType="hashMap" resultType="loginLogBean">
+    select 
+        t.createDate as currentLoginDate,
+       (select count(1) from t_login_log tt where tt.createUserId=t.createUserId  and tt.status='1') as loginCount,
+       (select createDate from t_login_log tt where tt.createUserId=t.createUserId and tt.loginId &lt; t.loginId and tt.status='1' order by  tt.loginId desc limit 0,1 ) as lastLoginDate
+    from t_login_log t 
+    where  
+      t.loginId =(select max(loginId) from t_login_log where createUserId=#{userId}  and status='1' order by  loginId desc)
+  </select>
+
+  <!-- 添加登录日志 -->
+  <insert id="saveLoginLog" parameterType="hashMap">
+    insert into t_login_log(
+      loginIP,
+      `status`,
+      createUserId,
+      createUser,
+      createDate
+    )values(
+      #{loginIP},
+      '1',
+      #{createUserId},
+      #{createUser},
+      sysdate()
+    )
+  </insert>  
+  
+  <!-- 根据条件分页查询登录日志-->
+  <select id="queryLoginLogByConditionPaging" parameterType="hashmap" resultType="loginLogBean">
+       select 
+          loginId as loginId,
+          loginIP as loginIP,
+          status as status,
+          createUser as createUser,
+          createDate createDate 
+       from t_login_log t
+       where  
+          status='1'
+       <if test="queryUserId!=null and queryUserId!=''">
+         and 
+           createUserId=#{queryUserId}
+       </if>
+  </select>
+  
+</mapper>

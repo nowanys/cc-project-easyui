@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                     http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+                     http://www.springframework.org/schema/context
+                     http://www.springframework.org/schema/context/spring-context-4.2.xsd
+                     http://www.springframework.org/schema/aop
+                     http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+                     http://www.springframework.org/schema/tx
+                     http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+
+	<!--  ===================AOP自动代理，该代码方式是使用jdk的动态代理 =================== -->
+	<aop:aspectj-autoproxy />
+	
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">  
+         <property name="location" value="classpath:spring/db.properties"/>
+    </bean>
+
+     <!--  ===================多数据源配置 =================== -->
+	 <bean id="masterDataSource" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="${master.uniqueResourceName}"/>
+        <property name="xaDataSourceClassName" value="${master.xaDataSourceClassName}"/>
+        <property name="xaProperties">
+            <props>
+                <prop key="url">${master.xaUrl}</prop>
+                <prop key="user">${master.xaUser}</prop>
+                <prop key="password">${master.xaPassword}</prop>
+            </props>
+        </property>
+        <property name="minPoolSize" value="${master.minPoolSize}" />
+        <property name="maxPoolSize" value="${master.maxPoolSize}" />
+        <property name="borrowConnectionTimeout" value="${master.borrowConnectionTimeout}" />
+        <property name="testQuery" value="${master.testQuery}" />
+        <property name="maintenanceInterval" value="${master.maintenanceInterval}" />
+    </bean>
+    
+     <bean id="otherDataSource" class="com.atomikos.jdbc.AtomikosDataSourceBean" init-method="init" destroy-method="close">
+        <property name="uniqueResourceName" value="${other.uniqueResourceName}"/>
+        <property name="xaDataSourceClassName" value="${other.xaDataSourceClassName}"/>
+        <property name="xaProperties">
+            <props>
+                <prop key="url">${other.xaUrl}</prop>
+                <prop key="user">${other.xaUser}</prop>
+                <prop key="password">${other.xaPassword}</prop>
+            </props>
+        </property>
+        <property name="minPoolSize" value="${other.minPoolSize}" />
+        <property name="maxPoolSize" value="${other.maxPoolSize}" />
+        <property name="borrowConnectionTimeout" value="${other.borrowConnectionTimeout}" />
+        <property name="testQuery" value="${other.testQuery}" />
+        <property name="maintenanceInterval" value="${other.maintenanceInterval}" />
+    </bean>
+    
+	
+	<!-- ===================mybatis分页拦截器=============================== -->
+	<bean id="masterMybatisPaginationInterceptor"
+          class="com.cjhme.system.main.interceptor.mybatis.PaginationInterceptor">
+        <property name="properties">
+            <props>
+                <prop key="dialect">${master.dialect}</prop>
+                <prop key="stmtIdRegex">${master.stmtIdRegex}</prop>
+            </props>
+        </property>
+    </bean>
+    
+    <bean id="otherMybatisPaginationInterceptor"
+          class="com.cjhme.system.main.interceptor.mybatis.PaginationInterceptor">
+        <property name="properties">
+            <props>
+                <prop key="dialect">${other.dialect}</prop>
+                <prop key="stmtIdRegex">${other.stmtIdRegex}</prop>
+            </props>
+        </property>
+    </bean>
+
+	<!-- ===================sqlSessionFactoryBean配置=============================== -->
+	<bean id="masterSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+        <property name="dataSource" ref="masterDataSource" />
+        <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"></property>
+        
+        <property name="plugins">
+            <list>
+                <ref bean="masterMybatisPaginationInterceptor"/>
+            </list>
+        </property>
+    </bean> 
+    
+    <bean id="otherSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+       <property name="dataSource" ref="otherDataSource" />
+        <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"></property>
+        
+        <property name="plugins">
+            <list>
+                <ref bean="otherMybatisPaginationInterceptor"/>
+            </list>
+        </property>
+    </bean>  
+
+    <!-- ===================sqlSessionTemplate配置=============================== -->
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="masterSqlSessionFactory" />
+	</bean>
+	
+	<bean id="otherSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="otherSqlSessionFactory" />
+	</bean>
+	
+	
+	<!-- ===================分布式事务配置=============================== -->
+	<bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager" init-method="init" destroy-method="close">
+        <property name="forceShutdown" value="true"/>
+    </bean>
+    
+    <bean id="atomikosUserTransaction" class="com.atomikos.icatch.jta.UserTransactionImp">
+        <property name="transactionTimeout" value="300"/>
+    </bean>
+    
+    <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="transactionManager" ref="atomikosTransactionManager"/>
+        <property name="userTransaction" ref="atomikosUserTransaction"/>
+    </bean>
+	
+	<!-- 配置注解事务 -->
+	<tx:annotation-driven/>
+	
+    
+</beans>

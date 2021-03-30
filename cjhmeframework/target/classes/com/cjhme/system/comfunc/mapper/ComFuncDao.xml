@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.comfunc.dao.ComFuncDao" >
+
+  
+  <!-- 查询用户常用功能列表 -->
+  <select id="queryUserComFuncList" resultType="comFuncBean"  parameterType="hashmap">
+    select 
+       t1.menuId as menuId,
+       t1.menuName as menuName,
+       t1.iconCls as iconCls,
+       t1.accessUrl as accessUrl
+    from t_menu t1,t_com_func t2
+    where
+      t1.menuId=t2.menuId
+    and
+      t2.userId=#{userId}
+    and
+      t2.roleId=#{roleId}
+  </select>
+  
+  <!--删除常用功能 -->
+  <delete id="deleteComfunc" parameterType="hashmap">
+     delete from t_com_func where userId=#{userId} and roleId=#{roleId}
+  </delete>
+  
+  <!-- 添加常用功能 -->
+  <insert id="saveComfunc" parameterType="hashmap">
+      insert into t_com_func(
+        menuId,
+        userId,
+        roleId
+      )values(
+        #{menuId},
+        #{userId},
+        #{roleId}
+      )
+  </insert>
+ 
+   
+</mapper>

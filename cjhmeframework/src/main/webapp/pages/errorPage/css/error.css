@@ -1,0 +1,28 @@
+a{
+	text-decoration: none;
+}
+.error-body {
+	background-color: #fefefe;
+}
+
+.error-div {
+	overflow-y: auto;
+	word-break: break-all;
+	word-wrap: break-word;
+	height: 100%
+}
+
+.error-tip {
+	font-size: 13px;
+	vertical-align: 6px;
+	margin-left: -6px;
+	font-weight: bold;
+	color: #fa0c1d
+}
+
+.error-content {
+	font-size: 13px;
+	color: #325def;
+	padding-left: 3px;
+	padding-right: 3px;
+}

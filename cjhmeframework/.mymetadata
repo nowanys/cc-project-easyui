@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="cjhmeframework"
+  id="myeclipse.1449491401739"
+  context-root="/cjhmeframework"
+  j2ee-spec="6.0"
+  archive="cjhmeframework.war">
+  <attributes>
+    <attribute name="webrootdir" value="src/main/webapp" />
+  </attributes>
+</project-module>
+

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.role.dao.RoleDao">
+
+ <!-- 根据条件分页查询角色 -->
+ <select id="queryRoleByConditionPaging" parameterType="hashmap" resultType="roleBean">
+   select 
+      roleId as roleId,
+      roleCode as roleCode,
+      roleName as roleName,
+      isSuper as isSuper,
+      status as status,
+      createUser as createUser,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate
+   from t_role t
+   <trim prefix="where" prefixOverrides="and">  
+      <if test="roleCode!=null and roleCode!=''">
+       t.roleCode like '%${roleCode}%'
+      </if>
+      
+      <if test="roleName!=null and roleName!=''">
+       and t.roleName like '%${roleName}%'
+      </if>
+      
+      <if test="isSuper!=null and isSuper!='' and isSuper!='-1'">
+       and t.isSuper=#{isSuper}
+      </if>
+   
+      <choose>
+	      <when test="status!=null and status!='' and status=='-1'">
+	       and t.status!='3'
+	     </when>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       and t.status=#{status}
+	     </when>
+	     <otherwise>
+	       and t.status='1'
+	     </otherwise>
+	  </choose>
+	  
+   </trim>
+   order by roleId desc
+ </select>
+
+ <!-- 判断角色是否存在 -->
+ <select id="queryRoleIsExists" parameterType="hashmap" resultType="integer">
+   select 
+      count(1)
+   from t_role 
+   where
+      (roleName=#{roleName} or roleCode=#{roleCode})
+   <if test="roleId!=null and roleId!=''">
+      and  roleId !=#{roleId}
+   </if> 
+   and status!='3'
+ </select>
+
+
+
+ <!-- 添加角色 -->
+ <insert id="saveRole" parameterType="hashmap">
+   insert into t_role(
+      roleCode,
+      roleName,
+      roleDescribe,
+      isSuper,
+      status,
+      createUserId,
+      createUser,
+      createDate,
+      emailSwitch,
+      smsSwitch
+   )values(
+      #{roleCode},
+      #{roleName},
+      #{roleDescribe},
+      #{isSuper},
+      #{status},
+      #{createUserId},
+      #{createUser},
+      sysdate(),
+      #{emailSwitch},
+      #{smsSwitch}
+   )
+ </insert>
+
+ <!-- 根据id查询角色 -->
+ <select id="queryRoleById" parameterType="hashmap" resultType="roleBean">
+  select 
+      roleId as roleId,
+      roleCode as roleCode,
+      roleName as roleName,
+      roleDescribe as roleDescribe,
+      isSuper as isSuper,
+      status as status,
+      emailSwitch as emailSwitch,
+      smsSwitch as smsSwitch,
+      createUserId as createUserId,
+      createUser as createUser,
+      updateUserId as updateUserId,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate
+   from t_role t 
+   where 
+      roleId=#{roleId}
+ </select>
+
+ <!-- 根据id修改角色 -->
+ <update id="updateRoleById" parameterType="hashmap">
+   update t_role 
+   set
+     roleCode=#{roleCode},
+     roleName=#{roleName},
+     roleDescribe=#{roleDescribe},
+     isSuper=#{isSuper},
+     status=#{status},
+     updateUserId=#{updateUserId},
+     updateUser=#{updateUser},
+     updateDate=sysdate(),
+     <if test="emailSwitch!=null and emailSwitch!=''">
+	     emailSwitch=#{emailSwitch},
+	 </if> 
+	 <if test="smsSwitch!=null and smsSwitch!=''">
+	     smsSwitch=#{smsSwitch}
+	 </if> 
+   where
+    roleId=#{roleId} 
+ </update>
+
+
+ <!-- 根据ids删除角色 -->
+ <update id="deleteRoleByIds" parameterType="hashmap">
+   update t_role
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       roleId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+
+ <!-- 查询所有角色列表 -->
+ <select id="queryAllRoleList" resultType="roleBean">
+   select 
+      roleId as roleId,
+      roleCode as roleCode,
+      roleName as roleName
+   from t_role t 
+   where 
+      t.status='1'
+ </select>
+
+
+ <!-- 根据角色查询角色菜单映射 -->
+ <select id="queryRoleMenuMappingById" resultType="roleMenuMappingBean" parameterType="hashmap">
+   select 
+      menuId,
+      (select tt.menuName from t_menu tt where tt.menuId=t.menuId) as menuName
+   from t_role_menu_mapping t 
+   where 
+      t.roleId=#{roleId}
+ </select>
+ 
+ <!-- 根据角色删除角色菜单映射 -->
+ <delete id="deleteRoleMenuMappingById" parameterType="hashmap">
+   delete from 
+      t_role_menu_mapping 
+   where 
+      roleId=#{roleId}
+ </delete>
+ 
+ <!-- 根据角色ids删除角色菜单映射 -->
+ <delete id="deleteRoleMenuMappingByIds" parameterType="hashmap">
+   delete from 
+       t_role_menu_mapping 
+   where 
+       roleId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+ 
+ <!-- 保存角色菜单映射 -->
+ <insert id="saveRoleMenuMapping" parameterType="hashmap">
+    insert into 
+    t_role_menu_mapping(
+      roleId,
+      menuId
+    )values(
+      #{roleId},
+      #{menuId}
+    )
+ </insert>
+ 
+  <!-- 根据角色查询角色按钮映射 -->
+ <select id="queryRoleButtonMappingById" resultType="roleButtonMappingBean" parameterType="hashmap">
+   select 
+      buttonId
+   from t_role_button_mapping t 
+   where 
+      t.roleId=#{roleId}
+ </select>
+ 
+ <!-- 根据角色删除角色按钮映射 -->
+ <delete id="deleteRoleButtonMappingById" parameterType="hashmap">
+   delete from 
+      t_role_button_mapping 
+   where 
+      roleId=#{roleId}
+ </delete>
+ 
+ <!-- 根据角色ids删除角色按钮映射 -->
+ <delete id="deleteRoleButtonMappingByIds" parameterType="hashmap">
+   delete from 
+      t_role_button_mapping 
+   where 
+       roleId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+ 
+ 
+ <!-- 保存角色按钮映射 -->
+ <insert id="saveRoleButtonMapping" parameterType="hashmap">
+    insert into 
+    t_role_button_mapping(
+      roleId,
+      buttonId
+    )values(
+      #{roleId},
+      #{buttonId}
+    )
+ </insert>
+ 
+ <!-- 根据角色ids删除角色用户映射 -->
+ <delete id="deleteRoleUserMappingByIds" parameterType="hashmap">
+   delete from 
+      t_user_role_mapping 
+   where 
+      roleId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+  </delete>
+  
+ <!-- 根据角色ids删除数据字典明细角色映射 -->
+ <delete id="deleteDataDicItemRoleMappingByIds" parameterType="hashmap">
+   delete from 
+      t_data_dic_item_role_mapping 
+   where 
+      roleId in
+      <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+         #{item}
+      </foreach>
+ </delete>
+ 
+ <!-- 根据角色查询角色访问地址映射 -->
+ <select id="queryRoleAccessUrlMappingById" resultType="roleAccessUrlMappingBean" parameterType="hashmap">
+   select 
+     t.accessUrlId as accessUrlId,
+     (select accessUrlName from t_access_url tt where tt.accessUrlId=t.accessUrlId) as accessUrlName 
+   from t_role_access_url_mapping t 
+   where 
+      t.roleId=#{roleId}
+ </select>
+ 
+ <!-- 根据角色id删除角色访问地址映射 -->
+ <delete id="deleteRoleAccessUrlMappingById" parameterType="hashmap">
+   delete from 
+      t_role_access_url_mapping 
+   where 
+      roleId=#{roleId}
+ </delete>
+ 
+ <!-- 根据角色ids删除角色访问地址映射 -->
+ <delete id="deleteRoleAccessUrlMappingByIds" parameterType="hashmap">
+   delete from 
+       t_role_access_url_mapping 
+   where 
+       roleId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+ 
+ <!-- 保存角色访问地址映射 -->
+ <insert id="saveRoleAccessUrlMapping" parameterType="hashmap">
+    insert into 
+    t_role_access_url_mapping(
+      roleId,
+      accessUrlId
+    )values(
+      #{roleId},
+      #{accessUrlId}
+    )
+ </insert>
+ 
+ <!-- 根据角色ids删除角色常用功能 -->
+ <delete id="deleteRoleComFuncByIds" parameterType="hashmap">
+   delete from 
+      t_com_func 
+   where 
+      roleId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+  </delete>
+
+ 
+</mapper>

@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.user.dao.UserDao" >
+
+ <!-- 用户角色部门映射 -->
+ <resultMap id="userRoleDeptRM"  type="userBean">
+   <id property="userId" column="userId" />
+   <result property="userCode" column="userCode" />
+   <result property="userName" column="userName" />
+   <result property="realName" column="realName" />
+   <result property="telephone" column="telephone" />
+   <result property="sex" column="sex" />
+   <result property="email" column="email" />
+   <result property="userDescribe" column="userDescribe" />
+   <result property="status" column="status" />
+   <result property="idCard" column="idCard" />
+   <result property="emailSwitch" column="emailSwitch" />
+   <result property="smsSwitch" column="smsSwitch" />
+   <collection property="roles"  ofType="java.util.ArrayList" column="userId" select="queryUserRoleMappingByUserId" />
+   <collection property="depts"  ofType="java.util.ArrayList" column="userId" select="queryUserDeptMappingByUserId" />
+ </resultMap>
+ 
+ <!-- 角色访问地址映射 -->
+ <resultMap  id="roleAccessUrlRM" type="roleBean">
+    <id property="roleId" column="roleId" />
+    <result property="roleCode" column="roleCode" />
+    <result property="roleName" column="roleName" />
+    <result property="isSuper" column="isSuper" />
+    <collection property="accessUrls" ofType="java.util.ArrayList" column="roleId" select="queryRoleAccessUrlMappingById"/>
+ </resultMap>
+
+ <!-- 根据用户id查询角色 -->
+ <select id="queryUserRoleMappingByUserId" resultMap="roleAccessUrlRM" parameterType="string">
+    select 
+      t1.roleId as roleId,
+      t1.roleCode as roleCode,
+      t1.roleName as roleName,
+      t1.isSuper as isSuper
+    from 
+      t_role t1 join 
+    (select roleId from t_user_role_mapping where userId=#{userId}) t2
+	on t1.roleId=t2.roleId 
+	where 
+	  t1.status='1'
+ </select>
+
+ <!-- 根据用户id查询部门 -->
+ <select id="queryUserDeptMappingByUserId" resultType="deptBean" parameterType="string">
+    select 
+      t1.deptId as deptId,
+      t1.deptCode as deptCode,
+      t1.deptName as deptName,
+      t1.deptSortName as deptSortName,
+      t1.deptLevel as deptLevel
+    from 
+      t_dept t1 join 
+    (select deptId from t_user_dept_mapping where userId=#{userId}) t2
+	on t1.deptId=t2.deptId 
+    where 
+	  t1.status='1'
+ </select>
+
+ <!-- 根据角色id查询角色访问地址映射 -->
+ <select id="queryRoleAccessUrlMappingById" resultType="accessUrlBean" parameterType="string">
+   select 
+     tt.accessUrlId as accessUrlId,
+     tt.accessUrl as accessUrl
+   from t_role_access_url_mapping t,t_access_url tt
+   where 
+     tt.status='1' and  tt.accessUrlId=t.accessUrlId and t.roleId=#{roleId}
+ </select>
+
+
+ <!-- 用户登录 -->
+ <select id="login" parameterType="hashmap" resultMap="userRoleDeptRM">
+   select 
+      userId as userId,
+      userCode as userCode,
+      userName as userName,
+      realName as realName,
+      telephone as telephone,
+      sex as sex,
+      email as email,
+      userDescribe as userDescribe,
+      status as status,
+      emailSwitch as emailSwitch,
+      smsSwitch as smsSwitch,
+      idCard as idCard
+   from t_user t 
+   where 
+      userName=#{userName}
+   and 
+      password=#{password}
+   and status!='3'
+ </select>
+
+
+
+
+ <!-- 根据条件分页查询用户 -->
+ <select id="queryUserByConditionPaging" parameterType="hashmap" resultType="userBean">
+   select 
+      userId as userId,
+      userCode as userCode,
+      userName as userName,
+      realName as realName,
+      status as status,
+      createUserId as createUserId,
+      createUser as createUser,
+      updateUserId as updateUserId,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate
+   from t_user t
+   <trim prefix="where" prefixOverrides="and">  
+      <if test="userCode!=null and userCode!=''">
+       t.userCode like '%${userCode}%'
+      </if>
+      
+      <if test="userName!=null and userName!=''">
+       and t.userName like '%${userName}%'
+      </if>
+      
+      <if test="realName!=null and realName!=''">
+       and t.realName like '%${realName}%'
+      </if>
+   
+      <choose>
+	      <when test="status!=null and status!='' and status=='-1'">
+	       and t.status!='3'
+	     </when>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       and t.status=#{status}
+	     </when>
+	     <otherwise>
+	       and t.status='1'
+	     </otherwise>
+	  </choose>
+   </trim>
+   order by userId desc
+ </select>
+
+ <!-- 判断用户是否存在 -->
+ <select id="queryUserIsExists" parameterType="hashmap" resultType="integer">
+   select 
+      count(1)
+   from t_user 
+   where
+      (userName=#{userName} or userCode=#{userCode})
+   <if test="userId!=null and userId!=''">
+      and  userId !=#{userId}
+   </if> 
+   and status!='3'
+ </select>
+
+
+
+ <!-- 添加用户 -->
+ <insert id="saveUser" parameterType="hashmap">
+   <selectKey resultType="string" order="AFTER" keyProperty="userId"> 
+        select last_insert_id() as userId 
+   </selectKey> 
+   
+   insert into t_user(
+      userCode,
+      userName,
+      password,
+      realName,
+      telephone,
+      email,
+      sex,
+      status,
+      userDescribe,
+      createUserId,
+      createUser,
+      createDate,
+      emailSwitch,
+      smsSwitch,
+      idCard
+   )values(
+      #{userCode},
+      #{userName},
+      #{password},
+      #{realName},
+      #{telephone},
+      #{email},
+      #{sex},
+      #{status},
+      #{userDescribe},
+      #{createUserId},
+      #{createUser},
+      sysdate(),
+      #{emailSwitch},
+      #{smsSwitch},
+      #{idCard}
+   )
+ </insert>
+
+ <!-- 根据id查询用户 -->
+ <select id="queryUserById" parameterType="hashmap" resultType="userBean">
+  select 
+      userId as userId,
+      userCode as userCode,
+      userName as userName,
+      realName as realName,
+      telephone as telephone,
+      sex as sex,
+      email as email,
+      userDescribe as userDescribe,
+      status as status,
+      emailSwitch as emailSwitch,
+      smsSwitch as smsSwitch,
+      idCard as idCard,
+      createUserId as createUserId,
+      createUser as createUser,
+      updateUserId as updateUserId,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate
+      
+   from t_user t 
+   where 
+      userId=#{userId}
+ </select>
+
+ <!-- 根据id修改用户 -->
+ <update id="updateUserById" parameterType="hashmap">
+   update t_user 
+   <set>
+	    <if test="userCode!=null and userCode!=''">
+	     userCode=#{userCode},
+	    </if>
+	    <if test="userName!=null and userName!=''">
+	     userName=#{userName},
+	    </if>
+	    <if test="status!=null and status!=''">
+	     status=#{status},
+	    </if> 
+	    <if test="emailSwitch!=null and emailSwitch!=''">
+	     emailSwitch=#{emailSwitch},
+	    </if> 
+	    <if test="smsSwitch!=null and smsSwitch!=''">
+	     smsSwitch=#{smsSwitch},
+	    </if> 
+	    <if test="idCard!=null and idCard!=''">
+	     idCard=#{idCard},
+	    </if> 
+	     realName=#{realName},
+	     telephone=#{telephone},
+	     email=#{email},
+	     sex=#{sex},
+	     userDescribe=#{userDescribe},
+	     updateUserId=#{updateUserId},
+	     updateUser=#{updateUser},
+         updateDate=sysdate()
+   </set>
+   where
+    userId=#{userId} 
+ </update>
+
+ <!-- 根据id修改密码 -->
+ <update id="updateUserPasswordById" parameterType="hashmap">
+   update t_user 
+   set
+     password=#{password},
+     updateUserId=#{updateUserId},
+     updateUser=#{updateUser},
+     updateDate=sysdate()
+   where
+    userId=#{userId} 
+ </update>
+
+ <!-- 根据ids重置用户密码 -->
+ <update id="updateUserPwdByIds" parameterType="hashmap">
+   update t_user
+     set
+       password=#{password},
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       userId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+ 
+ <!-- 根据ids删除用户 -->
+ <update id="deleteUserByIds" parameterType="hashmap">
+   update t_user
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       userId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+
+
+ <!-- 根据用户id查询用户角色映射 -->
+ <select id="queryUserRoleMappingById" resultType="userRoleMappingBean" parameterType="hashmap">
+   select 
+      t.roleId as roleId,
+      t.roleCode as roleCode,
+      t.roleName as roleName
+   from t_role t  
+   where 
+     t.roleId  in(select tt.roleId from t_user_role_mapping tt where tt.userId=#{userId})
+ </select>
+
+ <!-- 根据用户id删除用户角色映射 -->
+ <delete id="deleteUserRoleMappingById" parameterType="hashmap">
+   delete from 
+      t_user_role_mapping 
+   where 
+      userId=#{userId}
+ </delete>
+ 
+ <!-- 根据用户ids删除用户角色映射 -->
+ <delete id="deleteUserRoleMappingByIds" parameterType="hashmap">
+   delete from 
+      t_user_role_mapping 
+   where 
+      userId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+
+ <!-- 保存用户角色映射 -->
+ <insert id="saveUserRoleMapping" parameterType="hashmap">
+   insert into 
+    t_user_role_mapping(
+      userId,
+      roleId
+    )values(
+      #{userId},
+      #{roleId}
+    )
+ </insert>
+
+ <!-- 根据角色id查询用户 -->
+ <select id="queryUserByRoleId" parameterType="hashmap" resultType="userBean">
+   select 
+      t.userId as userId,
+      t.userCode as userCode,
+      t.userName as userName,
+      t.realName as realName,
+      t.status as status
+   from t_user t,t_user_role_mapping t2
+   where 
+      t.userId = t2.userId
+   and 
+      t2.roleId=#{roleId}
+   order by status
+ </select>
+ 
+ <!-- 根据用户id查询用户部门映射 -->
+ <select id="queryUserDeptMappingById" resultType="userDeptMappingBean" parameterType="hashmap">
+   select 
+      deptId as deptId,
+      (select tt.deptName from t_dept tt where tt.deptId=t.deptId) as deptName
+   from t_user_dept_mapping t 
+   where 
+      t.userId=#{userId}
+ </select>
+ 
+ <!-- 根据用户id删除用户部门映射 -->
+ <delete id="deleteUserDeptMappingById" parameterType="hashmap">
+   delete from 
+      t_user_dept_mapping 
+   where 
+      userId=#{userId}
+ </delete>
+ 
+ <!-- 根据用户ids删除用户部门映射 -->
+ <delete id="deleteUserDeptMappingByIds" parameterType="hashmap">
+   delete from 
+      t_user_dept_mapping 
+   where 
+      userId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+ 
+ <!-- 保存用户部门映射 -->
+ <insert id="saveUserDeptMapping" parameterType="hashmap">
+   insert into 
+    t_user_dept_mapping(
+      userId,
+      deptId
+    )values(
+      #{userId},
+      #{deptId}
+    )
+ </insert>
+ 
+ <!-- 根据部门id查询用户 -->
+ <select id="queryUserByDeptId" parameterType="hashmap" resultType="userBean">
+   select 
+      t.userId as userId,
+      t.userCode as userCode,
+      t.userName as userName,
+      t.realName as realName,
+      t.status as status
+   from t_user t,t_user_dept_mapping t2
+   where 
+      t.userId = t2.userId
+   and 
+      t2.deptId=#{deptId}
+   order by status
+ </select>
+ 
+ <!-- 根据用户ids删除用户常用功能 -->
+ <delete id="deleteUserComFuncByIds" parameterType="hashmap">
+   delete from 
+      t_com_func 
+   where 
+      userId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+
+   
+</mapper>

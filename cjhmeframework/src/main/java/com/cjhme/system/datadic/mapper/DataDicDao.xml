@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.datadic.dao.DataDicDao">
+
+<!-- 初始化时数据字典分类ResultMap -->
+<resultMap  id="initDataDicTypeResultMap" type="dataDicTypeBean">
+     <id property="dicTypeId" column="dicTypeId" />
+     <result property="dicTypeCode" column="dicTypeCode"/>
+     <result property="dicTypeName" column="dicTypeName"/>
+     <result property="dicCategory" column="dicCategory"/>
+     <result property="iconCls" column="iconCls"/>
+     <collection property="dataDicItems"  ofType="java.util.ArrayList"  column="dicTypeId"  select="queryInitDataDicItemById" />
+</resultMap>
+
+<!-- 初始化时数据字典明细ResultMap -->
+<resultMap  id="initDataDicItemResultMap" type="dataDicItemBean">
+     <result property="dicItemId" column="dicItemId"/>
+     <result property="dicItemName" column="dicItemName"/>
+     <result property="dicItemValue" column="dicItemValue"/>
+     <result property="dicItemDesc" column="dicItemDesc"/>
+     <result property="iconCls" column="iconCls"/>
+     <result property="defaultValue" column="defaultValue"/>
+     <result property="spareValue" column="spareValue"/>
+     <collection property="distributeRoles"  ofType="java.util.ArrayList"  column="dicItemId"  select="queryInitDataDicItemRoleMappingById" />
+</resultMap>
+
+
+<!-- 数据字典明细ResultMap -->
+<resultMap  id="dataDicItemResultMap" type="dataDicItemBean">
+     <result property="dicItemId" column="dicItemId"/>
+     <result property="dicItemCode" column="dicItemCode"/>
+     <result property="dicItemName" column="dicItemName"/>
+     <result property="dicItemValue" column="dicItemValue"/>
+     <result property="dicItemDesc" column="dicItemDesc"/>
+     <result property="iconCls" column="iconCls"/>
+     <result property="sortNum" column="sortNum"/>
+     <result property="status" column="status"/>
+     <result property="createUser" column="createUser"/>
+     <result property="updateUser" column="updateUser"/>
+     <result property="createDate" column="createDate"/>
+     <result property="updateDate" column="updateDate"/>
+     <result property="defaultValue" column="defaultValue"/>
+     <result property="spareValue" column="spareValue"/>
+     <collection property="children"  ofType="java.util.ArrayList"  column="{dicItemParentId=dicItemId,status=status}"  select="queryDataDicItemChildren" />
+</resultMap>
+
+
+<!-- 初始化时查询数据字典分类列表 -->
+<select id="queryInitDataDicType" resultMap="initDataDicTypeResultMap">
+   select 
+      dicTypeId as dicTypeId,
+      dicTypeCode as dicTypeCode,
+      dicTypeName as dicTypeName,
+      dicCategory as dicCategory,
+      iconCls as iconCls
+   from t_data_dic_type  
+   where 
+    status='1'
+</select>
+
+<!-- 初始化时根据数据字典分类id查询数据字典明细 -->
+<select id="queryInitDataDicItemById" parameterType="string" resultMap="initDataDicItemResultMap">
+   select 
+      dicItemId as dicItemId,
+      dicItemName as dicItemName,
+      dicItemValue as dicItemValue,
+      dicItemDesc as dicItemDesc,
+      iconCls as iconCls,
+      sortNum as sortNum,
+      (select dicItemName from  t_data_dic_item t2 where t2.dicItemId=t.dicItemParentId) as dicItemParentName,
+      status as status,
+      createUser as createUser,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate,
+      defaultValue as defaultValue,
+      spareValue as spareValue
+   from t_data_dic_item t
+   where 
+      t.dicTypeId=#{dicTypeId}
+   and 
+      t.status='1'
+   order by t.sortNum
+</select>
+
+<!-- 初始化时根据数据字典明细id查询数据角色映射 -->
+<select id="queryInitDataDicItemRoleMappingById" parameterType="string" resultType="roleBean">
+   select 
+      roleId as roleId
+   from t_data_dic_item_role_mapping t
+   where 
+      t.dicItemId=#{dicItemId}
+</select>
+
+
+
+<!-- 查询数据字典分类列表 -->
+<select id="queryDataDicTypeList" resultType="dataDicTypeBean"  parameterType="hashmap">
+   select 
+      dicTypeId as dicTypeId,
+      dicTypeCode as dicTypeCode,
+      dicTypeName as dicTypeName,
+      dicCategory as dicCategory,
+      iconCls as iconCls
+   from t_data_dic_type  
+   where 
+    status='1'
+   and 
+    dicCategory=#{queryDicCategory}
+</select>
+
+<!-- 判断数据字典分类是否存在 -->
+<select id="queryDataDicTypeIsExists" parameterType="hashmap" resultType="integer">
+   select 
+      count(1)
+   from t_data_dic_type 
+   where
+      dicTypeCode=#{dicTypeCode}
+   <if test="dicTypeId!=null and dicTypeId!=''">
+      and  dicTypeId !=#{dicTypeId}
+   </if> 
+   and status!='3'
+</select>
+
+
+<!-- 添加数据字典分类 -->
+<insert id="saveDataDicType" parameterType="hashmap">
+   insert into t_data_dic_type(
+      dicTypeCode,
+      dicTypeName,
+      dicCategory,
+      iconCls,
+      status,
+      createUserId,
+      createUser,
+      createDate
+   )values(
+      #{dicTypeCode},
+      #{dicTypeName},
+      #{dicCategory},
+      #{iconCls},
+      '1',
+      #{createUserId},
+      #{createUser},
+      sysdate()
+   )
+</insert>
+
+<!-- 根据id查询数据字典分类 -->
+<select id="queryDataDicTypeById" parameterType="hashmap"  resultType="dataDicTypeBean">
+  select 
+      dicTypeId as dicTypeId,
+      dicTypeName as dicTypeName,
+      dicTypeCode as dicTypeCode,
+      dicCategory as dicCategory,
+      iconCls as iconCls,
+      createUser as createUser,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate
+   from t_data_dic_type  
+   where 
+    dicTypeId=#{dicTypeId}
+</select>
+
+<!-- 根据id修改数据字典分类 -->
+<update id="updateDataDicTypeById" parameterType="hashmap">
+   update t_data_dic_type
+     set
+       dicTypeName=#{dicTypeName},
+       dicTypeCode=#{dicTypeCode},
+       dicCategory=#{dicCategory},
+       iconCls=#{iconCls},
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       dicTypeId=#{dicTypeId}
+</update>
+
+<!-- 根据ids删除数据字典分类 -->
+<update id="deleteDataDicTypeByIds" parameterType="hashmap">
+   update t_data_dic_type
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       dicTypeId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+</update>
+
+
+<!-- 根据数据字典分类id查询数据字典明细分页 -->
+<select id="queryDataDicItemByIdPaging" parameterType="hashmap" resultMap="dataDicItemResultMap">
+   select 
+      dicItemId as dicItemId,
+      dicItemCode as dicItemCode,
+      dicItemName as dicItemName,
+      dicItemValue as dicItemValue,
+      defaultValue as defaultValue,
+      spareValue as spareValue,
+      dicItemDesc as dicItemDesc,
+      iconCls as iconCls,
+      sortNum as sortNum,
+      status as status,
+      createUser as createUser,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate
+   from t_data_dic_item t
+   where 
+      t.dicTypeId=#{dicTypeId}
+   and
+      t.dicItemParentId=-1
+   <choose>
+     <when test="status!=null and status!='' and status!='-1'">
+       and t.status=#{status}
+     </when>
+     <otherwise>
+       and t.status!='3'
+     </otherwise>
+   </choose>
+    order by t.sortNum
+</select>
+
+<!-- 根据数据字典分类id查询数据字典明细子数据 -->
+<select id="queryDataDicItemChildren" parameterType="hashmap" resultMap="dataDicItemResultMap">
+   select 
+      dicItemId as dicItemId,
+      dicItemCode as dicItemCode,
+      dicItemName as dicItemName,
+      dicItemValue as dicItemValue,
+      defaultValue as defaultValue,
+      spareValue as spareValue,
+      dicItemDesc as dicItemDesc,
+      iconCls as iconCls,
+      sortNum as sortNum,
+      status as status,
+      createUser as createUser,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate
+   from t_data_dic_item t
+   where 
+      t.dicItemParentId=#{dicItemParentId}
+   and 
+      t.status=#{status}
+    order by t.sortNum
+</select>
+
+<!-- 判断数据字典明细是否存在 -->
+<select id="queryDataDicItemIsExists" parameterType="hashmap" resultType="integer">
+   select 
+      count(1)
+   from t_data_dic_item 
+   where
+      dicItemCode=#{dicItemCode}
+   <if test="dicItemId!=null and dicItemId!=''">
+      and  dicItemId !=#{dicItemId}
+   </if> 
+   and dicTypeCode=#{dicTypeCode}
+   and status!='3'
+</select>
+
+<!-- 根据分类编号查询明细最大序号 -->
+<select id="queryDataDiaItemMaxSortNumByTypeCode" parameterType="hashmap" resultType="integer">
+   select 
+    ifnull(max(sortNum),0)
+   from t_data_dic_item
+   where
+    dicTypeCode=#{dicTypeCode}
+</select>
+
+
+<!-- 添加数据字典明细 -->
+<insert id="saveDataDicItem" parameterType="hashmap">
+    insert into t_data_dic_item(
+       dicTypeId,
+       dicTypeCode,
+       dicItemParentId,
+       dicItemCode,
+       dicItemName,
+       dicItemValue,
+       dicItemDesc,
+       iconCls,
+       sortNum,
+       status,
+       createUserId,
+       createUser,
+       createDate,
+       defaultValue,
+       spareValue
+    )values(
+       #{dicTypeId},
+       #{dicTypeCode},
+       #{dicItemParentId},
+       #{dicItemCode},
+       #{dicItemName},
+       #{dicItemValue},
+       #{dicItemDesc},
+       #{iconCls},
+       #{sortNum},
+       #{status},
+       #{createUserId},
+       #{createUser},
+       sysdate(),
+       #{defaultValue},
+       #{spareValue}
+    )
+</insert>
+
+<!-- 根据id查询数据字典明细 -->
+<select id="queryDataDicItemById" parameterType="hashmap" resultType="dataDicItemBean">
+  select 
+      t.dicTypeCode as dicTypeCode,
+      t.dicItemId as dicItemId,
+      t.dicItemCode as dicItemCode,
+      t.dicItemName as dicItemName,
+      t.dicItemValue as dicItemValue,
+      t.dicItemDesc as dicItemDesc,
+      t.iconCls as iconCls,
+      t.dicItemParentId as dicItemParentId,
+      (select tt.dicItemName from t_data_dic_item tt where tt.dicItemId=t.dicItemParentId) as dicItemParentName,
+      t.status as status,
+      t.defaultValue as defaultValue,
+      t.spareValue as spareValue,
+      t.createUserId as createUserId,
+      t.createUser as createUser,
+      t.updateUserId as updateUserId,
+      t.updateUser as updateUser,
+      t.createDate as createDate,
+      t.updateDate as updateDate
+   from t_data_dic_item t
+   where 
+      dicItemId=#{dicItemId}
+</select>
+
+<!-- 根据id修改数据字典明细 -->
+<update id="updateDataDicItemById" parameterType="hashmap">
+    update t_data_dic_item
+      set 
+       dicItemCode=#{dicItemCode},
+       dicItemName=#{dicItemName},
+       dicItemValue=#{dicItemValue},
+       dicItemDesc=#{dicItemDesc},
+       iconCls=#{iconCls},
+       dicItemParentId=#{dicItemParentId},
+       status=#{status},
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate(),
+       defaultValue=#{defaultValue},
+       spareValue=#{spareValue}
+    where
+        dicItemId=#{dicItemId}
+</update>
+
+<!-- 根据ids删除数据字典明细 -->
+<update id="deleteDataDicItemByIds" parameterType="hashmap">
+   update t_data_dic_item
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       dicItemId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+</update>
+
+<!-- 根据分类ids删除数据字典明细 -->
+<update id="deleteDataDicItemByTypeIds" parameterType="hashmap">
+   update t_data_dic_item
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       dicTypeId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+</update>
+
+
+<!-- 获得当前行的上一条明细 -->
+<select id="queryPreviousDataDicItemById" parameterType="hashmap" resultType="dataDicItemBean">
+    select 
+      dicItemId as dicItemId,
+      sortNum as sortNum
+    from t_data_dic_item t
+    where
+     t.sortNum &lt; #{sortNum}
+    <choose>
+	      <when test="status!=null and status!='' and status=='-1'">
+	       and t.status!='3'
+	     </when>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       and t.status=#{status}
+	     </when>
+	</choose>
+	and t.dicTypeCode=#{dicTypeCode}
+	order by sortNum desc
+    limit 0,1;
+</select>
+
+<!-- 获得当前行的下一条明细 -->
+<select id="queryNextDataDicItemById" parameterType="hashmap" resultType="dataDicItemBean">
+    select 
+      dicItemId as dicItemId,
+      sortNum as sortNum
+    from t_data_dic_item t
+    where
+      t.sortNum &gt; #{sortNum}
+   <choose>
+	      <when test="status!=null and status!='' and status=='-1'">
+	       and t.status!='3'
+	     </when>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       and t.status=#{status}
+	     </when>
+	</choose>
+	and t.dicTypeCode=#{dicTypeCode}
+	order by sortNum
+    limit 0,1;
+</select>
+
+<!-- 根据id移动数据字典序号 -->
+<update id="updateDataDicItemSortNumById" parameterType="hashmap">
+    update t_data_dic_item 
+    set
+       sortNum=#{sortNum},
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+    where 
+       dicItemId =#{dicItemId}
+</update>
+
+<!-- 添加数据字典明细角色映射 -->
+<insert id="saveDataDicItemRoleMapping" parameterType="hashmap">
+   insert into t_data_dic_item_role_mapping(
+     dicItemId,
+     roleId
+   )values(
+     #{dicItemId},
+     #{roleId}
+   )
+</insert>
+
+<!-- 根据数据字典明细id查询数据字典明细角色映射 -->
+<select id="queryDataDicItemRoleMappingById" parameterType="hashmap" resultType="dataDicItemRoleMappingBean">
+   select 
+      dirmId as dirmId,
+      dicItemId as dicItemId,
+      roleId as roleId,
+      (select roleCode from t_role tt where tt.roleId = t.roleId) as roleCode,
+      (select roleName from t_role tt where tt.roleId = t.roleId) as roleName
+   from t_data_dic_item_role_mapping t
+   where
+      dicItemId=#{dicItemId}
+</select>
+
+<!-- 根据数据字典明细id删除数据字典明细角色映射 -->
+<delete id="deleteDataDicItemRoleMappingById" parameterType="hashmap">
+   delete from 
+      t_data_dic_item_role_mapping 
+   where 
+       dicItemId=#{dicItemId}
+</delete>
+
+<!-- 根据数据字典明细ids删除数据字典明细角色映射 -->
+<delete id="deleteDataDicItemRoleMappingByIds" parameterType="hashmap">
+   delete from 
+      t_data_dic_item_role_mapping 
+   where 
+       dicItemId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+</delete>
+
+<!-- 根据条件查询数据字典明细 -->
+<select id="queryDataDicItemByCondition" parameterType="hashmap" resultType="treeNodeBean">
+     select 
+          t.dicItemId as id,
+          t.dicItemName as text,
+          t.dicItemParentId as parentId,
+          t.iconCls as iconCls,
+          t.dicItemCode as attr1,
+          t.dicItemValue as attr2
+     from 
+       t_data_dic_item t
+     where 
+          t.dicTypeCode=#{dicTypeCode}
+	   <if test="dicItemName!=null and dicItemName!=''">
+	       and t.dicItemName like '%${dicItemName}%' 
+	   </if> 
+	   <choose>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       and t.status=#{status}
+	     </when>
+	     <otherwise>
+	       and t.status!='3'
+	     </otherwise>
+	   </choose>
+      order by t.dicItemParentId,t.sortNum
+ </select>
+ 
+ <!-- 根据移动字典明细id查询明细最大排序  -->
+ <select id="queryMaxSortNumByParentId" parameterType="hashmap" resultType="string">
+    select 
+      (max(sortNum)+1)
+    from t_data_dic_item t
+    where 
+      t.dicItemParentId=#{dicItemParentId}
+ </select>
+ 
+
+</mapper>

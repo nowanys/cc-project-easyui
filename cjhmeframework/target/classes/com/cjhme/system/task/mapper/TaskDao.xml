@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.task.dao.TaskDao" >
+
+   <!-- 根据用户id获得待办列表 -->
+   <select id="queryTaskByUserId" parameterType="hashMap" resultType="taskBean">
+       select 
+         taskId as taskId,
+         busniessMark as busniessMark,
+         busniessId as busniessId,
+         taskParameter as taskParameter,
+         title as title,
+         taskUrl as taskUrl,
+         createUser as createUser,
+         createDate as createDate
+       from t_task t 
+       where 
+         t.processUserId =#{processUserId}
+       and 
+         t.status='1'
+       order by createDate desc
+       limit 0,5
+   </select>
+   
+   
+   <!-- 根据用户id获得待办列表条数 -->
+   <select id="queryTaskCountByUserId" parameterType="hashMap" resultType="integer">
+       select 
+        count(1)
+       from t_task t 
+       where 
+         t.processUserId =#{processUserId}
+       and 
+         t.status='1'
+   </select>
+   
+   <!-- 根据条件分页查询待办 -->
+   <select id="queryTaskByConditionPaging" parameterType="hashmap" resultType="taskBean">
+	   select 
+	     taskId as taskId,
+         title as title,
+         taskUrl as taskUrl,
+         taskParameter as taskParameter,
+         status as status,
+         createUser as createUser,
+         createDate as createDate
+	   from t_task t
+	   <trim prefix="where" prefixOverrides="and">  
+	      <if test="title!=null and title!=''">
+	       t.title like '%${title}%'
+	      </if>
+	      <choose>
+		      <when test="status!=null and status!='' and status=='-1'">
+		       and t.status!='3'
+		     </when>
+		     <when test="status!=null and status!='' and status!='-1'">
+		       and t.status=#{status}
+		     </when>
+		     <otherwise>
+		       and t.status='1'
+		     </otherwise>
+		  </choose>
+		  and 
+		   t.createUserId=#{createUserId}
+	   </trim>
+	   order by taskId desc
+   </select>
+   
+   <!-- 根据id修改待办状态 -->
+   <update id="updateTaskById" parameterType="hashmap">
+      update t_task 
+        set
+           status=2,
+           updateUserId=#{updateUserId},
+           updateUser=#{updateUser},
+           updateDate=sysdate()
+         where
+           taskId=#{taskId}
+   </update>
+   
+</mapper>

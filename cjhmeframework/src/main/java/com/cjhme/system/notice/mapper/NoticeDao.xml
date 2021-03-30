@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.notice.dao.NoticeDao" >
+
+  <!-- 根据条件分页查询系统公告 -->
+  <select id="querySysNoticeByConditionPaging" parameterType="hashmap" resultType="noticeBean">
+    select 
+      noticeId as noticeId,
+      noticeTitle as noticeTitle,
+      noticeContent as noticeContent,
+      noticeType as noticeType,
+      status as status,
+      createUser as createUser,
+      updateUser as updateUser,
+      createDate as createDate,
+      updateDate as updateDate,
+      cutoffDate as cutoffDate
+    from t_notice t
+    <trim prefix="where" prefixOverrides="and">  
+      <if test="createUserId!=null and createUserId!=''">
+          t.createUserId=#{createUserId}
+      </if>
+      
+      <if test="noticeTitle!=null and noticeTitle!=''">
+        and 
+          t.noticeTitle=#{noticeTitle}
+      </if>
+      <if test="cutoffDate!=null and cutoffDate!=''">
+        and
+          DATE_FORMAT(t.cutoffDate,'%Y-%m-%d')=DATE_FORMAT(#{cutoffDate},'%Y-%m-%d')
+      </if>
+      <choose>
+	      <when test="status!=null and status!='' and status=='-1'">
+	       and t.status!='3'
+	     </when>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       and t.status=#{status}
+	     </when>
+	     <otherwise>
+	       and t.status='1'
+	     </otherwise>
+	  </choose>
+        and 
+          t.noticeType=1
+    </trim>
+    order by t.cutoffDate desc
+  </select>
+  
+  <!-- 保存公告 -->
+  <insert id="saveNotice"  parameterType="hashMap" >
+      insert into t_notice(
+         noticeTitle,
+         noticeContent,
+         noticeType,
+         status,
+         createUserId,
+         createUser,
+         createDate,
+         cutoffDate
+      )values(
+         #{noticeTitle},
+         #{noticeContent},
+         #{noticeType},
+         #{status},
+         #{createUserId},
+         #{createUser},
+         sysdate(),
+         #{cutoffDate}
+      )
+  </insert>
+  
+  <!-- 根据id查询公告 -->
+  <select id="queryNoticeById" parameterType="hashMap" resultType="noticeBean">
+      select
+         noticeId as noticeId,
+         noticeTitle as noticeTitle,
+         noticeContent as noticeContent,
+         status as status,
+         createUser as createUser,
+         updateUser as updateUser,
+         createDate as createDate,
+         updateDate as updateDate,
+         cutoffDate as cutoffDate
+      from t_notice 
+      where noticeId=#{noticeId}
+  </select>
+  
+  <!-- 根据id修改公告 -->
+  <update id="updateNoticeById" parameterType="hashMap">
+      update t_notice
+      set 
+        noticeTitle=#{noticeTitle},
+        noticeContent=#{noticeContent},
+        cutoffDate=#{cutoffDate},
+        status=#{status},
+        updateUser=#{updateUser},
+        updateUserId=#{updateUserId},
+        updateDate=sysdate()
+      where
+        noticeId=#{noticeId}
+  </update>
+  
+  
+   <!-- 根据ids删除公告 -->
+ <update id="deleteNoticeByIds" parameterType="hashmap">
+   update t_notice
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       noticeId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+  
+  <!-- 根据用户id查看公告列表 -->
+  <select id="queryNoticeByUserId" parameterType="hashMap" resultType="noticeBean">
+       select 
+		 t.noticeId as noticeId,
+		 t.noticeTitle as noticeTitle,
+		 t.createUser as createUser,
+		 t.createDate as createDate,
+		 t.noticeType as noticeType
+	   from t_notice t,t_notice_user_mapping t2 
+	   where 
+	   (
+	      t.noticeId=t2.noticeId
+		and 
+		  t.status='1'
+		and
+		  t2.status='1'
+		and 
+		  t.noticeType !=1
+		and 
+		  t2.userId=1
+		and
+		  t.cutoffDate>=sysdate()
+       )
+       or 
+       (
+          t.status='1'
+	   and 
+		  t.noticeType=1
+	   and
+		  t.cutoffDate>=sysdate()
+       )
+       group by  t.noticeId 
+	   order by t.cutoffDate desc
+       limit 0,5
+  </select>
+  
+  
+  
+   
+   
+</mapper>

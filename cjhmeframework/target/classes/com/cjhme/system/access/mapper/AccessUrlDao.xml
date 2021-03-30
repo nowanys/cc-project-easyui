@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.system.access.dao.AccessUrlDao">
+
+ <!-- 根据条件分页查询访问地址-->
+ <select id="queryAccessUrlByConditionPaging" parameterType="hashmap" resultType="accessUrlBean">
+   select 
+          accessUrlId as accessUrlId,
+          accessUrl as accessUrl,
+          accessUrlName as accessUrlName,
+          status as status,
+          createUser as createUser,
+          createDate as createDate
+       from t_access_url t
+       where  
+       <choose>
+	      <when test="status!=null and status!='' and status=='-1'">
+	       t.status!='3'
+	     </when>
+	     <when test="status!=null and status!='' and status!='-1'">
+	       t.status=#{status}
+	     </when>
+	     <otherwise>
+	       t.status='1'
+	     </otherwise>
+	  </choose>
+	   <if test="accessUrl!=null and accessUrle!=''">
+         and 
+           accessUrl like '%${accessUrl}%'
+       </if>
+       <if test="accessUrlName!=null and accessUrlName!=''">
+         and 
+           accessUrlName like '%${accessUrlName}%'
+       </if>
+ </select>
+ 
+ <!-- 判断访问地址是否存在 -->
+ <select id="queryAccessUrlIsExists" parameterType="hashmap" resultType="integer">
+   select 
+      count(1)
+   from t_access_url
+   where
+      accessUrl=#{accessUrl}
+   <if test="accessUrlId!=null and accessUrlId!=''">
+      and  accessUrlId !=#{accessUrlId}
+   </if> 
+   and status!='3'
+ </select>
+ 
+ <!-- 添加访问地址 -->
+ <insert id="saveAccessUrl" parameterType="hashmap">
+   insert into t_access_url(
+      accessUrl,
+      accessUrlName,
+      status,
+      createUserId,
+      createUser,
+      createDate
+   )values(
+      #{accessUrl},
+      #{accessUrlName},
+      #{status},
+      #{createUserId},
+      #{createUser},
+      sysdate()
+   )
+ </insert>
+ 
+ <!-- 根据id查询访问地址 -->
+ <select id="queryAccessUrlById" parameterType="hashmap" resultType="accessUrlBean">
+  select 
+          accessUrlId as accessUrlId,
+          accessUrl as accessUrl,
+          accessUrlName as accessUrlName,
+          status as status,
+          createUser as createUser,
+          createDate as createDate,
+	      updateUser as updateUser,
+	      updateDate as updateDate
+   from t_access_url t 
+   where 
+      accessUrlId=#{accessUrlId}
+ </select>
+ 
+ <!-- 根据id修改访问地址-->
+ <update id="updateAccessUrlById" parameterType="hashmap">
+   update t_access_url
+   set
+     accessUrl=#{accessUrl},
+     accessUrlName=#{accessUrlName},
+     status=#{status},
+     updateUserId=#{updateUserId},
+     updateUser=#{updateUser},
+     updateDate=sysdate()
+   where
+    accessUrlId=#{accessUrlId} 
+ </update>
+ 
+ <!-- 根据ids删除访问地址 -->
+ <update id="deleteAccessUrlByIds" parameterType="hashmap">
+   update t_access_url
+     set
+       status='3',
+       updateUserId=#{updateUserId},
+       updateUser=#{updateUser},
+       updateDate=sysdate()
+   where 
+       accessUrlId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </update>
+ 
+ 
+ <!-- 查询所有访问地址列表 -->
+ <select id="queryAllAccessUrlList" resultType="accessUrlBean">
+    select 
+       accessUrlId as accessUrlId,
+       accessUrlName as accessUrlName
+    from t_access_url t
+    where
+     t.status='1'
+ </select>
+ 
+ <!-- 根据访问地址ids删除访问地址角色映射 -->
+ <delete id="deleteAccessUrlRoleMappingByIds" parameterType="hashmap">
+   delete from 
+       t_role_access_url_mapping 
+   where 
+       accessUrlId in
+       <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          #{item}
+       </foreach>
+ </delete>
+ 
+
+ 
+ 
+</mapper>

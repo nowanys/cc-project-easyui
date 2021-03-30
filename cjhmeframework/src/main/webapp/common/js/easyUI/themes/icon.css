@@ -1,0 +1,380 @@
+/*空白*/
+.icon-blank{
+	background:url('icons/blank.gif') no-repeat !important;
+}
+
+/*添加*/
+.icon-add{
+	background:url('icons/add.png') no-repeat  !important;
+}
+
+/*编辑༭*/
+.icon-edit{
+	background:url('icons/edit.png') no-repeat  !important;
+}
+
+/*删除*/
+.icon-del{
+    background:url('icons/del.png') no-repeat  !important;
+}
+
+/*移除*/
+.icon-remove{
+	background:url('icons/remove.png') no-repeat  !important;
+}
+
+/*保存*/
+.icon-save{
+	background:url('icons/save.png') no-repeat  !important;
+}
+
+/*剪切*/
+.icon-cut{
+	background:url('icons/cut.png') no-repeat  !important;
+}
+
+/*ok*/
+.icon-ok{
+	background:url('icons/ok.png') no-repeat  !important;
+}
+
+/*no*/
+.icon-no{
+	background:url('icons/no.png') no-repeat  !important;
+}
+
+/*ȡ��*/
+.icon-cancel{
+	background:url('icons/cancel.png') no-repeat    !important;
+}
+
+/*重新加载*/
+.icon-reload{
+	background:url('icons/reload.png') no-repeat    !important;
+}
+
+/*查询*/
+.icon-search{
+	background:url('icons/search.png') no-repeat    !important;
+}
+
+/*打印*/
+.icon-print{
+	background:url('icons/print.png') no-repeat    !important;
+}
+
+/*����*/
+.icon-undo{
+	background:url('icons/undo.png') no-repeat    !important;
+}
+
+/*����*/
+.icon-redo{
+	background:url('icons/redo.png') no-repeat    !important;
+}
+
+/*返回*/
+.icon-back{
+	background:url('icons/back.png') no-repeat    !important;
+}
+
+/*�ϼ�*/
+.icon-sum{
+	background:url('icons/sum.png') no-repeat    !important;
+}
+
+/*提示*/
+.icon-tip{
+	background:url('icons/tip.png') no-repeat    !important;
+}
+
+/*帐户Ȩ��*/
+.icon-account{
+	background:url('icons/account.png') no-repeat    !important;
+}
+
+/*主页*/
+.icon-home{
+	background:url('icons/home.png') no-repeat  !important;
+}
+
+/*文件*/
+.icon-file{ 
+	background:url('icons/file.png') no-repeat    !important;
+}
+
+/*角色*/
+.icon-role{ 
+	background:url('icons/role.png') no-repeat    !important;
+}
+
+/*菜单*/
+.icon-menu{ 
+	background:url('icons/menu.png') no-repeat    !important;
+}
+
+/*管理员*/
+.icon-admin{ 
+	background:url('icons/admin.png') no-repeat    !important;
+}
+
+/*用户*/
+.icon-person{ 
+	background:url('icons/person.png') no-repeat    !important;
+}
+
+/*设置*/
+.icon-set{
+	background:url('icons/set.png') no-repeat    !important;
+}
+
+/*退出*/
+.icon-exit{
+	background:url('icons/exit.png') no-repeat    !important;
+}
+
+/*帮助*/
+.icon-help{
+	background:url('icons/help.png') no-repeat    !important;
+}
+
+/*时间*/
+.icon-time{
+	background:url('icons/time.png') no-repeat    !important;
+}
+
+/*个人中心*/
+.icon-person-center{ 
+	background:url('icons/person-center.png') no-repeat    !important;
+}
+
+/*修改密码*/
+.icon-pwd-change{ 
+	background:url('icons/pwd-change.png') no-repeat    !important;
+}
+
+/*配置*/
+.icon-config{ 
+	background:url('icons/config.png') no-repeat    !important;
+}
+
+/*日志文件*/
+.icon-log-file{
+	background:url('icons/log-file.png') no-repeat    !important;
+}
+
+/*警告*/
+.icon-warning{
+	background:url('icons/warning.png') no-repeat    !important;
+}
+
+/*登出*/
+.icon-log-out{
+	background:url('icons/log-out.png') no-repeat    !important;
+}
+
+/*多页面*/
+.icon-pages{
+	background:url('icons/pages.png') no-repeat    !important;
+}
+
+/*更多*/
+.icon-more{
+	background:url('icons/more.png') no-repeat !important;
+}
+
+/*按钮*/
+.icon-button{
+	background:url('icons/button.png') no-repeat    !important;
+}
+
+/*下载*/
+.icon-download{
+	background:url('icons/download.png') no-repeat    !important;
+}
+
+/*关于*/
+.icon-about{
+	background:url('icons/about.png') no-repeat    !important;
+}
+
+/*网站*/
+.icon-web-site{
+	background:url('icons/web-site.png') no-repeat    !important;
+}
+
+/*公告*/
+.icon-notice{
+	background:url('icons/notice.png') no-repeat    !important;
+}
+
+/*关闭*/
+.icon-close{
+	background:url('icons/close.png') no-repeat    !important;
+}
+
+/*excel*/
+.icon-excel{
+	background:url('icons/excel.png') no-repeat    !important;
+}
+
+/*类别*/
+.icon-category{
+	background:url('icons/category.png') no-repeat    !important;
+}
+
+/*资源*/
+.icon-resource{
+	background:url('icons/resource.png') no-repeat    !important;
+}
+
+/*二维码*/
+.icon-qrcode{
+	background:url('icons/qrcode.png') no-repeat    !important;
+}
+
+/*留言*/
+.icon-message{
+	background:url('icons/message.png') no-repeat    !important;
+}
+
+/*回复*/
+.icon-reply{
+	background:url('icons/reply.png') no-repeat    !important;
+}
+
+/*视图*/
+.icon-view{
+	background:url('icons/view.png') no-repeat    !important;
+}
+
+/*上移*/
+.icon-move-up{
+	background:url('icons/move-up.png') no-repeat    !important;
+}
+
+/*下移*/
+.icon-move-down{
+	background:url('icons/move-down.png') no-repeat    !important;
+}
+
+/*系统*/
+.icon-system{
+	background:url('icons/system.png') no-repeat    !important;
+}
+
+/*数据字典*/
+.icon-data-dic{
+    background:url('icons/data-dic.png') no-repeat    !important;
+}
+
+/*yes*/
+.icon-yes{
+    background:url('icons/yes.png') no-repeat    !important;
+}
+
+/*not*/
+.icon-not{
+    background:url('icons/not.png') no-repeat    !important;
+}
+
+/*锁定*/
+.icon-lock{
+    background:url('icons/lock.png') no-repeat    !important;
+}
+
+/*解锁*/
+.icon-unlock{
+    background:url('icons/unlock.png') no-repeat    !important;
+}
+
+/*未知*/
+.icon-unknow{
+    background:url('icons/unknow.png') no-repeat    !important;
+}
+
+/*任务*/
+.icon-task{
+    background:url('icons/task.png') no-repeat    !important;
+}
+
+/*选择*/
+.icon-select{
+    background:url('icons/select.png') no-repeat    !important;
+}
+
+/*部门*/
+.icon-dept{
+    background:url('icons/dept.png') no-repeat    !important;
+}
+
+/*清除*/
+.icon-chear{
+    background:url('icons/chear.png') no-repeat    !important;
+}
+
+/*移动*/
+.icon-move{
+    background:url('icons/move.png') no-repeat    !important;
+}
+
+/*工作台*/
+.icon-workbench{
+	background:url('icons/workbench.png') no-repeat    !important;
+}
+
+/*微笑*/
+.icon-smile{
+	background:url('icons/smile.png') no-repeat    !important;
+}
+
+/*关闭所有*/
+.icon-close-all{
+	background:url('icons/close-all.png') no-repeat    !important;
+}
+
+/*关闭其它*/
+.icon-close-other{
+	background:url('icons/close-other.png') no-repeat    !important;
+}
+
+/*关闭当前*/
+.icon-close-current{
+	background:url('icons/close-current.png') no-repeat    !important;
+}
+
+
+/*个性化*/
+.icon-individuation{
+	background:url('icons/individuation.png') no-repeat    !important;
+}
+
+
+/*登录*/
+.icon-login{
+	background:url('icons/login.png') no-repeat    !important;
+}
+
+/*报表*/
+.icon-report{
+	background:url('icons/report.png') no-repeat    !important;
+}
+
+/*表格*/
+.icon-table{
+	background:url('icons/table.png') no-repeat    !important;
+}
+
+/*上传*/
+.icon-upload{
+	background:url('icons/upload.png') no-repeat    !important;
+}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper   
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cjhme.demo.dao.MasterDemoDao">
+
+
+
+
+	<insert id="saveDemo" parameterType="hashmap">
+		insert into t_demo(
+		content
+		)values(
+		#{content}
+		)
+	</insert>
+
+
+	<update id="updateDemo" parameterType="hashmap">
+		update t_demo
+		<set>
+			<if test="content!=null and content!=''">
+				content=#{content},
+			</if>
+		</set>
+		where
+		id=#{id}
+	</update>
+
+
+	<update id="deleteDemo" parameterType="string">
+		delete from t_demo where
+		id=#{id}
+	</update>
+
+
+	<select id="queryDemoPaging" parameterType="hashmap" resultType="com.cjhme.demo.bean.MasterDemoBean">
+		select
+		id as id,
+		content as content
+		from t_demo t
+		<trim prefix="where" prefixOverrides="and">
+			<if test="content!=null and content!=''">
+				t.content like '%${content}%'
+			</if>
+		</trim>
+	</select>
+
+	<select id="queryDemoById" resultType="com.cjhme.demo.bean.MasterDemoBean" parameterType="string">
+		select
+		id as id,
+		content as content
+		from t_demo t  where id=#{id}
+	</select>
+
+
+</mapper>
